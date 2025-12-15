@@ -286,9 +286,9 @@ for table in tables_to_check:
 
 **Результат загрузки:**
 
-![clickhouse_struct](./imgs/clickhouse_struct.png)
+![clickhouse_struct](./images/clickhouse_struct.png)
 
-![clickhouse_example](./imgs/clickhouse_example.png)
+![clickhouse_example](./images/clickhouse_example.png)
 
 ### Реализация витрин в MongoDB (бонус)
 
@@ -401,7 +401,7 @@ def create_product_sales_mart():
 
 Посмотрим пример запроса в `Neo4j` для того, чтобы понять, что данные корректно загрузились:
 
-![neo4j.png](./imgs/neo4j.png)
+![neo4j.png](./images/neo4j.png)
 
 ### ValkРеализация витрин в Valkey (бонус)ey
 
