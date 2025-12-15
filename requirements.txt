@@ -1,0 +1,8 @@
+httpx
+jupyterlab
+findspark
+pyspark
+pandas
+sqlalchemy
+psycopg2-binary
+clickhouse-driver

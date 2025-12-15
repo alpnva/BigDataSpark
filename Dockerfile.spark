@@ -1,0 +1,132 @@
+# ==================================================================
+# Dockerfile for spark-worker and spark-master
+# ==================================================================
+
+FROM apache/spark:3.5.7-java17-python3
+
+USER root
+
+# Устанавливаем необходимые утилиты
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создаем директорию для JDBC драйверов
+# RUN mkdir -p /opt/spark/jars
+
+# Скачиваем PostgreSQL JDBC
+RUN wget -O /opt/spark/jars/postgresql-42.6.0.jar \
+    https://repo1.maven.org/maven2/org/postgresql/postgresql/42.6.0/postgresql-42.6.0.jar
+
+# Скачиваем ClickHouse JDBC
+RUN wget -O /opt/spark/jars/clickhouse-jdbc-0.4.6.jar \
+    https://repo1.maven.org/maven2/com/clickhouse/clickhouse-jdbc/0.4.6/clickhouse-jdbc-0.4.6.jar
+
+# HTTP зависимости для ClickHouse
+RUN curl -L -o /opt/spark/jars/httpcore5-5.2.1.jar \
+    https://repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.2.1/httpcore5-5.2.1.jar
+
+RUN curl -L -o /opt/spark/jars/httpclient5-5.2.1.jar \
+    https://repo1.maven.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.2.1/httpclient5-5.2.1.jar
+
+# ======================= Start Mongo ============================
+
+# MongoDB Spark Connector (совместимая версия для Spark 3.5)
+RUN wget -O /opt/spark/jars/mongo-spark-connector.jar \
+    https://repo1.maven.org/maven2/org/mongodb/spark/mongo-spark-connector_2.12/3.0.1/mongo-spark-connector_2.12-3.0.1.jar
+
+# MongoDB Java Driver 4.x (совместимый с коннектором 3.0.1)
+RUN wget -O /opt/spark/jars/mongodb-driver-sync-4.4.0.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.4.0/mongodb-driver-sync-4.4.0.jar
+
+RUN wget -O /opt/spark/jars/mongodb-driver-core-4.4.0.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.4.0/mongodb-driver-core-4.4.0.jar
+
+RUN wget -O /opt/spark/jars/bson-4.4.0.jar \
+    https://repo1.maven.org/maven2/org/mongodb/bson/4.4.0/bson-4.4.0.jar
+
+# Дополнительные зависимости
+RUN wget -O /opt/spark/jars/mongo-java-driver-3.12.11.jar \
+    https://repo1.maven.org/maven2/org/mongodb/mongo-java-driver/3.12.11/mongo-java-driver-3.12.11.jar
+
+# JSON библиотеки
+RUN wget -O /opt/spark/jars/jackson-core-2.13.4.jar \
+    https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.4/jackson-core-2.13.4.jar
+
+RUN wget -O /opt/spark/jars/jackson-databind-2.13.4.jar \
+    https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.4/jackson-databind-2.13.4.jar
+
+RUN wget -O /opt/spark/jars/jackson-annotations-2.13.4.jar \
+    https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.4/jackson-annotations-2.13.4.jar
+
+# ======================= End Mongo ============================
+
+
+# ======================= Casandra Start ===========================
+# Cassandra Spark Connector для Spark 3.5
+RUN wget -O /opt/spark/jars/spark-cassandra-connector-assembly_2.12-3.5.0.jar \
+    https://repo1.maven.org/maven2/com/datastax/spark/spark-cassandra-connector-assembly_2.12/3.5.0/spark-cassandra-connector-assembly_2.12-3.5.0.jar
+
+# Cassandra Java Driver
+RUN wget -O /opt/spark/jars/cassandra-driver-core-4.17.0.jar \
+    https://repo1.maven.org/maven2/com/datastax/oss/java-driver-core/4.17.0/java-driver-core-4.17.0.jar
+
+RUN wget -O /opt/spark/jars/cassandra-driver-query-builder-4.17.0.jar \
+    https://repo1.maven.org/maven2/com/datastax/oss/java-driver-query-builder/4.17.0/java-driver-query-builder-4.17.0.jar
+
+# Дополнительные зависимости
+RUN wget -O /opt/spark/jars/guava-32.1.3-jre.jar \
+    https://repo1.maven.org/maven2/com/google/guava/guava/32.1.3-jre/guava-32.1.3-jre.jar
+
+# ======================= Casandra End ===========================
+
+
+# ======================= Neo4j Start =========================
+
+# Установка Neo4j Spark Connector
+RUN wget -O /opt/spark/jars/neo4j-connector-apache-spark_2.12-5.2.0_for_spark_3.jar \
+    https://repo1.maven.org/maven2/org/neo4j/neo4j-connector-apache-spark_2.12/5.2.0_for_spark_3/neo4j-connector-apache-spark_2.12-5.2.0_for_spark_3.jar
+
+# Neo4j Java Driver
+RUN wget -O /opt/spark/jars/neo4j-java-driver-5.20.0.jar \
+    https://repo1.maven.org/maven2/org/neo4j/driver/neo4j-java-driver/5.20.0/neo4j-java-driver-5.20.0.jar
+
+# Дополнительные зависимости
+RUN wget -O /opt/spark/jars/reactor-core-3.4.12.jar \
+    https://repo1.maven.org/maven2/io/projectreactor/reactor-core/3.4.12/reactor-core-3.4.12.jar
+
+RUN wget -O /opt/spark/jars/reactive-streams-1.0.3.jar \
+    https://repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar
+
+# ======================= Neo4j End =========================
+
+
+# ======================= Valkey Start ==========================
+
+# Spark Redis Connector (совместимая версия)
+RUN wget -O /opt/spark/jars/spark-redis_2.12-3.0.0.jar \
+    https://repo1.maven.org/maven2/com/redislabs/spark-redis_2.12/3.0.0/spark-redis_2.12-3.0.0.jar
+
+# Jedis 3.7.0 (совместимый с spark-redis 3.0.0)
+RUN wget -O /opt/spark/jars/jedis-3.7.0.jar \
+    https://repo1.maven.org/maven2/redis/clients/jedis/3.7.0/jedis-3.7.0.jar
+
+# Commons-pool2
+RUN wget -O /opt/spark/jars/commons-pool2-2.11.1.jar \
+    https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar
+
+# Дополнительные зависимости
+RUN wget -O /opt/spark/jars/commons-codec-1.15.jar \
+    https://repo1.maven.org/maven2/commons-codec/commons-codec/1.15/commons-codec-1.15.jar
+
+# ======================= Valkey End =========================
+
+
+# Устанавливаем переменные окружения для Spark
+# ENV SPARK_CLASSPATH=/opt/spark/jars/*
+
+# Указываем команду по умолчанию
+CMD ["/bin/bash"]
+
+
